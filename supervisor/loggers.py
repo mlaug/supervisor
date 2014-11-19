@@ -12,6 +12,8 @@ import errno
 import sys
 import time
 import traceback
+from logging.handlers import SysLogHandler
+from logging import LogRecord as SysLogRecord
 
 from supervisor.compat import syslog
 from supervisor.compat import long
@@ -324,8 +326,12 @@ class Logger:
         raise NotImplementedError
 
 class SyslogHandler(Handler):
-    def __init__(self):
+
+    syslogger = None
+
+    def __init__(self, server, port):
         Handler.__init__(self)
+        self.syslogger = SysLogHandler(address=(server, port))
         assert syslog is not None, "Syslog module not present"
 
     def close(self):
@@ -334,23 +340,15 @@ class SyslogHandler(Handler):
     def reopen(self):
         pass
 
-    def _syslog(self, msg): # pragma: no cover
-        # this exists only for unit test stubbing
-        syslog.syslog(msg)
-
     def emit(self, record):
-        try:
-            params = record.asdict()
-            message = params['message']
-            for line in message.rstrip('\n').split('\n'):
-                params['message'] = line
-                msg = self.fmt % params
-                try:
-                    self._syslog(msg)
-                except UnicodeError:
-                    self._syslog(msg.encode("UTF-8"))
-        except:
-            self.handleError()
+        params = record.asdict()
+        self.syslogger.emit(SysLogRecord(msg=record.msg,
+                                         level=record.level,
+                                         args=params,
+                                         exc_info=None,
+                                         pathname=None,
+                                         lineno=None,
+                                         name=None))
 
 def getLogger(level=None):
     return Logger(level)
@@ -373,8 +371,8 @@ def handle_stdout(logger, fmt):
     handler.setLevel(logger.level)
     logger.addHandler(handler)
 
-def handle_syslog(logger, fmt):
-    handler = SyslogHandler()
+def handle_syslog(logger, fmt, server = "127.0.0.1", port = 514):
+    handler = SyslogHandler(server, port)
     handler.setFormat(fmt)
     handler.setLevel(logger.level)
     logger.addHandler(handler)

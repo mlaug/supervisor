@@ -940,6 +940,7 @@ class ServerOptions(Options):
                         'rollover, set maxbytes > 0 to avoid filling up '
                         'filesystem unintentionally' % (section, n))
 
+
             command = get(section, 'command', expansions=expansions)
             if command is None:
                 raise ValueError(
@@ -963,6 +964,8 @@ class ServerOptions(Options):
                 stdout_logfile_backups=logfiles['stdout_logfile_backups'],
                 stdout_logfile_maxbytes=logfiles['stdout_logfile_maxbytes'],
                 stdout_syslog=logfiles['stdout_syslog'],
+                syslog_server=get(section, "syslog_server", False),
+                syslog_port=integer(get(section, "syslog_port", False)),
                 stderr_logfile=logfiles['stderr_logfile'],
                 stderr_capture_maxbytes = stderr_cmaxbytes,
                 stderr_events_enabled = stderr_events,
@@ -1722,6 +1725,7 @@ class ProcessConfig(Config):
         'autostart', 'autorestart', 'startsecs', 'startretries',
         'stdout_logfile', 'stdout_capture_maxbytes',
         'stdout_events_enabled', 'stdout_syslog',
+        'syslog_server','syslog_port',
         'stdout_logfile_backups', 'stdout_logfile_maxbytes',
         'stderr_logfile', 'stderr_capture_maxbytes',
         'stderr_logfile_backups', 'stderr_logfile_maxbytes',

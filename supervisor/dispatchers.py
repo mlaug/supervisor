@@ -147,7 +147,7 @@ class POutputDispatcher(PDispatcher):
 
         if getattr(config, '%s_syslog' % channel, False):
             fmt = config.name + ' %(message)s'
-            loggers.handle_syslog(self.mainlog, fmt)
+            loggers.handle_syslog(self.mainlog, fmt, getattr(config, 'syslog_server'), getattr(config, 'syslog_port'))
 
     def removelogs(self):
         for log in (self.mainlog, self.capturelog):
